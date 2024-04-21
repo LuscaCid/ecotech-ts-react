@@ -19,7 +19,7 @@ export function Signup () {
                         {/* Conteúdo da lista de endereços */}
                     </div>
                 </div>
-                <h1 className="text-white text-6xl border-b-2 border-white pb-1 mb-4 absolute bottom-2 left-2">W5I</h1>
+                <h1 className="text-white text-6xl font-bold border-white pb-1 mb-4 absolute bottom-2 left-2">W5I</h1>
                 <img className="image w-24 absolute bottom-2 right-2" src={LoginAside} alt="" />
             </aside>
 
