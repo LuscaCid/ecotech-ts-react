@@ -1,43 +1,69 @@
-import React from 'react';
 import { AuthHeader } from '../../../Components/AuthHeader';
 import EcoImage from "../../../assets/login-aside.svg"
+import * as z from "zod"
+import {useForm} from "react-hook-form"
+import { zodResolver } from '@hookform/resolvers/zod';
+import { AuthContext } from '../../../Contexts/Auth';
+import { useContextSelector } from 'use-context-selector';
+import { useNavigate } from 'react-router-dom';
+
+const LoginFormData = z.object({
+    nm_email : z.string().min(3),
+    nm_senha : z.string()
+})
+
+type ILoginFormData = z.infer<typeof LoginFormData>
 export function Login() {
+
+    const navigate = useNavigate()
+    const login = useContextSelector(AuthContext, (context) => {
+        return context.login
+    })
+
+    const {handleSubmit, reset, register} = useForm<ILoginFormData>({
+        resolver : zodResolver(LoginFormData),
+        defaultValues : {
+            nm_email : "",
+            nm_senha : ""
+        }
+    })
+ 
+    function handleLogin (data : ILoginFormData) {
+        console.log(data)
+        login(data)
+        navigate("/")
+    }
+
     return (
      <>
         <AuthHeader isLogin/>
 
         <div className=" bg-zinc-900  m-auto w-fit mt-20">
             <div className=" rounded-lg bg-zinc-800 flex h-[400px] justify-between w-[1000px] shadow-lg">
-                <form className="w-1/2 h-full flex flex-col gap-4 p-5 text-2xl  rounded-l-lg bg-zinc-800">
+                <form
+                    onSubmit={handleSubmit(handleLogin)} 
+                    className="w-1/2 h-full flex flex-col gap-4 p-5 text-2xl  rounded-l-lg bg-zinc-800">
                     <legend className="text-zinc-100 text-4xl pb-4 border-b border-green-500 mb-4 font-semibold">Login</legend>
                     <div className="input-wrapper">
                         <input
                             type="text"
-                        name="email"
+                        {...register("nm_email")}
                         id="email"
                         placeholder="E-mail"
-                        className="w-full bg-zinc-800 border-none rounded-md py-4 px-5"
+                        className="w-full bg-zinc-800 border border-zinc-700  text-zinc-200   rounded-md py-4 px-5"
                     />
                 </div>
                 <div className="input-wrapper">
                     <input
                         type="password"
-                        name="senha"
+                        {...register("nm_senha")}
                         id="senha"
                         placeholder="Senha"
-                        className="w-full bg-zinc-800 border-none rounded-md py-4 px-5"
+                        className="w-full bg-zinc-800 border border-zinc-700  text-zinc-200   rounded-md py-4 px-5"
                     />
                 </div>
                 <div className="remember-me text-zinc-100 text-sm">
-                    <label htmlFor="lembrar" className="flex items-center">
-                        Lembrar de mim?
-                        <input
-                            id="lembrar"
-                            name="lembrar"
-                            type="checkbox"
-                            className="ml-2"
-                        />
-                    </label>
+                    
                 </div>
                 <button
                     id="btn-entrar"

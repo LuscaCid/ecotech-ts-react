@@ -1,9 +1,10 @@
 import {Routes, Route} from "react-router-dom"
+import EmployeeMenu from "../pages/Employee/home"
 
 export const AppAdminRoutes = () => {
   return (
     <Routes>
-      <Route />
+      <Route path="/" element={<EmployeeMenu />}/>
       <Route />
     </Routes>
   )
