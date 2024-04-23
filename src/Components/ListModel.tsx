@@ -3,6 +3,42 @@ import { ClientRequest } from "../pages/Client/Home"
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale/pt-BR'
 
+
+
+
+interface IsOpenProps {
+  isOpen : boolean
+  changeIsOpen : (bool : boolean) => void
+  modalData : RequestPropsForModal | undefined
+  setModalData : React.Dispatch<SetStateAction<RequestPropsForModal | undefined>>
+}
+const IsOpenContext = createContext({} as IsOpenProps)
+
+function IsOpenContextProvider ({children} : {children : ReactNode}) {
+  
+  const [modalData, setModalData] = useState<RequestPropsForModal|undefined>(undefined)
+
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  const changeIsOpen = (bool : boolean) => {
+    setIsOpen(!bool)
+  }
+
+  return (
+    <IsOpenContext.Provider value={
+      { 
+        isOpen,
+        changeIsOpen,
+        modalData,
+        setModalData
+      }
+    } >
+      {children}
+    </IsOpenContext.Provider>
+  )
+}
+
+
 /**
  * tbodylist vai possuir um array e nele, cada posicao considera-se como sendo um trow
  * logo, a ideia eh criar um array a partir das chaves do objeto com Object.keys
@@ -54,7 +90,7 @@ export const ListModel = ({type, theadList, tbodyList}: Props) => {
               ))}
             </tr>
           </thead>
-          <tbody className=" border-collapse w-full max-h-[400px] overflow-y-auto">
+          <tbody className=" border-collapse w-full max-h-[400px] overflow-y-auto ">
               {
                 tbodyList.length > 0 && tbodyList.map((element) =>{
                   const keys = Object.keys(element)
@@ -65,7 +101,7 @@ export const ListModel = ({type, theadList, tbodyList}: Props) => {
                       const actualKey = keys[index]
                       const value = element[actualKey] 
                       return (
-                        <td key={Math.round(Math.random() * 23000)} className='my-4  p-4 text-2xl text-zinc-100 font-bold'>
+                        <td key={Math.round(Math.random() * 23000)} className='my-4 border-spacing-2 p-4 text-2xl text-zinc-100 font-bold'>
                           {value}
                         </td>
                       )
@@ -113,38 +149,5 @@ function ModalAcceptation() {
         </div>
 
       </article>
-  )
-}
-
-
-interface IsOpenProps {
-  isOpen : boolean
-  changeIsOpen : (bool : boolean) => void
-  modalData : RequestPropsForModal | undefined
-  setModalData : React.Dispatch<SetStateAction<RequestPropsForModal | undefined>>
-}
-const IsOpenContext = createContext({} as IsOpenProps)
-
-function IsOpenContextProvider ({children} : {children : ReactNode}) {
-  
-  const [modalData, setModalData] = useState<RequestPropsForModal|undefined>(undefined)
-
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-
-  const changeIsOpen = (bool : boolean) => {
-    setIsOpen(!bool)
-  }
-
-  return (
-    <IsOpenContext.Provider value={
-      { 
-        isOpen,
-        changeIsOpen,
-        modalData,
-        setModalData
-      }
-    } >
-      {children}
-    </IsOpenContext.Provider>
   )
 }
