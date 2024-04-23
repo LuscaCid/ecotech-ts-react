@@ -66,6 +66,14 @@ export function CreateMatResPage () {
         <header className="border max-h-[290px] overflow-y-auto border-zinc-700 rounded-md p-3 flex flex-col gap-5">
           <h2 className="text-zinc-100 text-3xl font-bold">Lista Resíduos</h2>
           {/* elemento renderizado */}
+          {
+            isSuccess && residualsList.map(element => (
+              <section className="rounded-md bg-zinc-800 p-3 flex items-center justify-between">
+                <span>{element.id_residuo}</span>
+                <span>{element.nm_residuo}</span>
+              </section>
+            ))
+          }
         </header>
         {/* secao renderizar materiais */}
         {/* secao renderizar residuos */}
