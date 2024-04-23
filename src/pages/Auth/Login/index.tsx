@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthContext } from '../../../Contexts/Auth';
 import { useContextSelector } from 'use-context-selector';
 import { useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
 
 const LoginFormData = z.object({
     nm_email : z.string().min(3),
@@ -16,9 +17,7 @@ type ILoginFormData = z.infer<typeof LoginFormData>
 export function Login() {
 
     const navigate = useNavigate()
-    const login = useContextSelector(AuthContext, (context) => {
-        return context.login
-    })
+    const {login} = useContext(AuthContext)
 
     const {handleSubmit, reset, register} = useForm<ILoginFormData>({
         resolver : zodResolver(LoginFormData),

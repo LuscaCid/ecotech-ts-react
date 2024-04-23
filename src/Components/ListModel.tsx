@@ -1,5 +1,7 @@
-import { useRef, useState } from "react"
+import { ReactNode, SetStateAction, createContext, useContext, useRef, useState } from "react"
 import { ClientRequest } from "../pages/Client/Home"
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale/pt-BR'
 
 /**
  * tbodylist vai possuir um array e nele, cada posicao considera-se como sendo um trow
@@ -15,13 +17,13 @@ type Props = {
 
 export const ListModel = ({type, theadList, tbodyList}: Props) => {
 
-  const [isOpen, setIsOpen] = useState<boolean>(false)
- 
+  const {isOpen, changeIsOpen} = useContext(IsOpenContext)
+
   function handleOpenReceived (element : any) {
     console.log(element)
     if(type == "Recebimentos") 
     {
-      setIsOpen(!isOpen)
+      changeIsOpen(!isOpen)
     } else return
   }
   
@@ -30,9 +32,11 @@ export const ListModel = ({type, theadList, tbodyList}: Props) => {
   }
 
   return (
-    <section className='w-[800px] m-auto border border-zinc-700 p-3 rounded-md mb-2'>
+
+    <IsOpenContextProvider>
+      <section className='w-[800px] m-auto border border-zinc-700 p-3 rounded-md mb-2 max-h-[420px] overflow-y-auto '>
       
-      <ModalAcceptation isOpen={isOpen} modalContent={{id_solicitacao : 2, nm_codigo : "dasd", nm_usuario : "asdd"}} /> 
+      <ModalAcceptation /> 
       
       <div className="mb-3">
         {type == "Recebimentos" &&  <h1 className='text-2xl text-zinc-200 font-bold rounded-md border border-zinc-700 p-2 '> Lista de Recebimentos</h1> }
@@ -42,7 +46,7 @@ export const ListModel = ({type, theadList, tbodyList}: Props) => {
 
       {
         tbodyList.length > 0 ? (
-          <table className="border-spacing-3 border-spacing-y-9 ">
+          <table className=" border-spacing-3 border-spacing-y-9 ">
           <thead className="w-full  text-left bg-zinc-950 rounded-md">
             <tr className="w-full">
               {theadList.length > 0 && theadList.map(element => (
@@ -50,16 +54,16 @@ export const ListModel = ({type, theadList, tbodyList}: Props) => {
               ))}
             </tr>
           </thead>
-          <tbody className=" border-collapse w-full max-h-[400px]">
+          <tbody className=" border-collapse w-full max-h-[400px] overflow-y-auto">
               {
                 tbodyList.length > 0 && tbodyList.map((element) =>{
                   const keys = Object.keys(element)
                   
                   return (
-                    <tr onClick={() => handleOpenReceived(element)} className="cursor-pointer hover:opacity-80 transtion duration-200  even:bg-zinc-800 odd:bg-zinc-700 " key={element.id_solicitacao}>
+                    <tr onClick={() => handleOpenReceived(element)} className=" cursor-pointer hover:opacity-80 transtion duration-200  even:bg-zinc-800 odd:bg-zinc-700 " key={element.id_solicitacao}>
                     {keys.map((_, index) => {
                       const actualKey = keys[index]
-                      const value = element[actualKey]
+                      const value = element[actualKey] 
                       return (
                         <td key={Math.round(Math.random() * 23000)} className='my-4  p-4 text-2xl text-zinc-100 font-bold'>
                           {value}
@@ -76,7 +80,9 @@ export const ListModel = ({type, theadList, tbodyList}: Props) => {
         ) : (<h1 className="text-zinc-200 text-4xl text-nowrap">Nenhum resultado encontrado!</h1>)
         
       }
-    </section>
+      </section>
+    </IsOpenContextProvider>
+    
   )
 }
 
@@ -86,27 +92,16 @@ interface RequestPropsForModal {
   nm_usuario : string
 } 
 
-interface ModalProps {
-  isOpen : boolean
-  modalContent: RequestPropsForModal
-}
-function ModalAcceptation({isOpen, modalContent }: ModalProps) {
-  
-  let hiddenClassname = "hidden bg-zinc-800 rounded-md border border-zinc-700 p-4 text-zinc-200 flex justify-between items-center text-2xl font-bold mb-3"
-
-  if(isOpen) {
-    hiddenClassname = "bg-zinc-800 rounded-md border border-zinc-700 p-4 text-zinc-200 flex justify-between items-center text-2xl font-bold mb-3";
-
-  } else if(!isOpen) hiddenClassname = "hidden bg-zinc-800 rounded-md border border-zinc-700 p-4 text-zinc-200 flex justify-between items-center text-2xl font-bold mb-3"
-  
+function ModalAcceptation() {
+  const {isOpen, modalData} = useContext(IsOpenContext)
   return (
-    <article className={hiddenClassname} >
+    <article className={`${isOpen ? "" : "hidden"} bg-zinc-800 rounded-md border border-zinc-700 p-4 text-zinc-200 flex justify-between items-center text-2xl font-bold mb-3`} >
         <span>
-          Para o usuário: {modalContent.nm_usuario}
+          Para o usuário: {modalData && modalData.nm_usuario}
         </span>
         <h1>
 
-          Solicitação selecionada: {modalContent.nm_codigo}
+          Solicitação selecionada: {modalData && modalData.nm_codigo}
         </h1>
         <div className="flex gap-3">
           <button  className="rounded-md bg-red-500 border border-red-600 p-4 text-zinc-200 font-bold hover:bg-red-700 transition duration-150 ">
@@ -118,5 +113,38 @@ function ModalAcceptation({isOpen, modalContent }: ModalProps) {
         </div>
 
       </article>
+  )
+}
+
+
+interface IsOpenProps {
+  isOpen : boolean
+  changeIsOpen : (bool : boolean) => void
+  modalData : RequestPropsForModal | undefined
+  setModalData : React.Dispatch<SetStateAction<RequestPropsForModal | undefined>>
+}
+const IsOpenContext = createContext({} as IsOpenProps)
+
+function IsOpenContextProvider ({children} : {children : ReactNode}) {
+  
+  const [modalData, setModalData] = useState<RequestPropsForModal|undefined>(undefined)
+
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  const changeIsOpen = (bool : boolean) => {
+    setIsOpen(!bool)
+  }
+
+  return (
+    <IsOpenContext.Provider value={
+      { 
+        isOpen,
+        changeIsOpen,
+        modalData,
+        setModalData
+      }
+    } >
+      {children}
+    </IsOpenContext.Provider>
   )
 }

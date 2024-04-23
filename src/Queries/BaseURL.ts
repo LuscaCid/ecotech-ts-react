@@ -1,7 +1,7 @@
 
 
 export default {
-    baseURL : "http://192.168.0.135:8000/api",
+    baseURL : "http://localhost:8000/api",
     getUserKey : () => {
         const UserDataStorage = localStorage.getItem("@ecotech-dados")
         if(UserDataStorage){

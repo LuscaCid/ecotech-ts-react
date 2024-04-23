@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query"
 import { getMyRequests } from "../../Queries/ClientHome.queries"
 import { useContextSelector } from "use-context-selector"
 import { AuthContext } from "../../Contexts/Auth"
+import { useContext } from "react"
 
 export interface ClientRequest {
     id_solicitacao : number
@@ -37,24 +38,26 @@ const fakeRequests : ClientRequest[] = [
 
 export const HomeClient = () => {
 
-  const {logout} = useContextSelector(AuthContext, (context) => {
-    return context;
-  })
+  const {logout} = useContext(AuthContext)
 
   const { data : requestsList ,isFetched, isSuccess } = useQuery({
     queryKey : ["usuario-solicitacoes"],
     queryFn : () => getMyRequests(),
   })
   if(isSuccess) {
-    console.log("data")
+    console.log(requestsList)
   }
-  if(isSuccess){
+  /**
+   * if(isSuccess){
     
     if(!Array.isArray(requestsList)){
       console.log("logout")
       logout()
     }
   }
+   * 
+   */
+  
   return (
     <div className="bg-zinc-900">
       <header className="items-center pt-10 pb-20 py-2 w-full px-9 bg-zinc-800 flex justify-between border-b border-zinc-600">
@@ -68,7 +71,7 @@ export const HomeClient = () => {
           <NavLink to="/requests" className="rounded-md p-4 text-2xl font-bold text-white border border-zinc-700 hover:bg-green-700 bg-green-600 duration-100">
             Gerar solicitação
           </NavLink >
-          <NavLink to="/login" className="rounded-md p-4 text-2xl font-bold text-white border border-zinc-700 hover:bg-green-600 duration-100">
+          <NavLink to="/" onClick={logout}  className="rounded-md p-4 text-2xl font-bold text-white border border-zinc-700 hover:bg-green-600 duration-100">
             Logout
           </NavLink >
         </div>

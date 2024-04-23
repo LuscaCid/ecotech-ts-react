@@ -1,4 +1,4 @@
-import { createContext } from "use-context-selector";
+import { createContext } from "react";
 import { LoginQuery } from "../Queries/Login.queries";
 import { useMutation } from "@tanstack/react-query";
 import { ReactNode, useEffect, useState } from "react";
@@ -8,6 +8,7 @@ interface IUser {
     chave : string
     nu_cargo : number
     qt_ecosaldo : number
+    codigo : string
 }
 
 interface ISignup {}
@@ -18,7 +19,7 @@ export interface LoginCredentials  {
 }
 
 interface IAuthContext {
-    userData : IUser | null
+    userData : IUser | undefined
     login : (LoginCredentials: LoginCredentials) => Promise<IUser | void>  
     signup : (SignupCredentials : ISignup) => Promise<void>
     logout : () => void
@@ -33,7 +34,7 @@ interface props {
 
 export function AuthContextProvider ({children} : props) {
 
-    const [userData , setUserData ] = useState<IUser | null>(null)
+    const [userData , setUserData ] = useState<IUser | undefined>(undefined)
     
     const {mutateAsync : LoginMutate } = useMutation({
         mutationFn : LoginQuery,
@@ -47,10 +48,15 @@ export function AuthContextProvider ({children} : props) {
         formData.append("nm_senha", LoginCredentials.nm_senha)
 
         try {
-            const response : {codigo : string, chave : string, usuario : IUser} = await LoginMutate(formData)
-            setUserData(response.usuario)
-            const parsedToString = JSON.stringify(response)
-            localStorage.setItem("@ecotech-dados", parsedToString)
+            const response : IUser = await LoginMutate(formData)
+            if(response.codigo == "logado") {
+                setUserData(response)
+
+                const parsedToString = JSON.stringify(response)
+                localStorage.setItem("@ecotech-dados", parsedToString)
+            }
+            //senao, mostrar uma caixinha amigavel de erro
+            
 
         } catch (exception : unknown) {
             console.error(exception)
@@ -61,7 +67,7 @@ export function AuthContextProvider ({children} : props) {
         console.log(credentials)
     } 
     const logout = () => {
-        setUserData(null)
+        setUserData(undefined)
         localStorage.removeItem("@ecotech-dados")
         
     }
@@ -70,8 +76,9 @@ export function AuthContextProvider ({children} : props) {
         const isFullfilledLocalstorage =  localStorage.getItem("@ecotech-dados")
         if(isFullfilledLocalstorage) {
             const storageParsed = JSON.parse(isFullfilledLocalstorage)
-            
-            setUserData(storageParsed.usuario)
+
+            console.log(storageParsed)
+            setUserData(storageParsed)
         }
     }, [])
 

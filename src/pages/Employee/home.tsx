@@ -4,6 +4,20 @@ import { ListModel } from "../../Components/ListModel";
 import Search from "../../assets/search.svg"
 import { AllClientRequests } from "../../Queries/AllClientRequests";
 import { useState } from "react";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+export interface IRequestResponse {
+    dt_solicitacao : string
+    id_solicitacao : number
+    nm_material : string
+    nm_residuo: string
+    nm_usuario  : string
+    qt_material: number
+    sg_medida: string
+    vl_status: number
+}
+
 export default function EmployeeMenu () {
 
     const [query, setQuery] = useState<string>("")
@@ -11,9 +25,15 @@ export default function EmployeeMenu () {
         queryKey : ["recebimentos", query] ,
         queryFn : () => AllClientRequests(query)
     })
-    
+    let formattedArrray = [] ;
     if(isSuccess) {
-        console.log(listResponse)
+        console.log(listResponse.dados.lista)
+        formattedArrray = listResponse.dados.lista.map((element : IRequestResponse) => {
+            return {
+                ...element,
+                dt_solicitacao : formatDistanceToNow(element.dt_solicitacao, {addSuffix : true, locale : ptBR})
+            }
+        })
     }
 
     return (
@@ -35,8 +55,8 @@ export default function EmployeeMenu () {
                 {
                     isSuccess && (<ListModel 
                     type="Recebimentos" 
-                    tbodyList={listResponse.dados.lista} 
-                    theadList={["Id", "Cliente", "Resíduo" ,"Material", "Quantidade", "Medida em:", "Status", "Data de Solicitação", "Código"]}
+                    tbodyList={formattedArrray} 
+                    theadList={["Id", "Cliente", "Resíduo" ,"Material", "Quantidade", "Medida", "Status", "Data", "Código"]}
                 />) 
                 }
                 
