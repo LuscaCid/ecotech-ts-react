@@ -3,6 +3,12 @@ import { LoginQuery } from "../Queries/Login.queries";
 import { useMutation } from "@tanstack/react-query";
 import { ReactNode, useEffect, useState } from "react";
 
+interface ISetLocalstorage {
+    usuario : IUser
+    codigo : string
+    chave : string
+}
+
 interface IUser {
     nm_usuario : string
     chave : string
@@ -34,7 +40,7 @@ interface props {
 
 export function AuthContextProvider ({children} : props) {
 
-    const [userData , setUserData ] = useState<IUser | undefined>(undefined)
+    const [userData , setUserData] = useState<IUser | undefined>(undefined)
     
     const {mutateAsync : LoginMutate } = useMutation({
         mutationFn : LoginQuery,
@@ -46,13 +52,14 @@ export function AuthContextProvider ({children} : props) {
         const formData = new FormData()
         formData.append("nm_email", LoginCredentials.nm_email)
         formData.append("nm_senha", LoginCredentials.nm_senha)
-
+        console.log(formData)
         try {
-            const response : IUser = await LoginMutate(formData)
+            const response : ISetLocalstorage = await LoginMutate(formData)
             if(response.codigo == "logado") {
-                setUserData(response)
-
+                setUserData(response.usuario)
+                console.log(response)
                 const parsedToString = JSON.stringify(response)
+                // in the localstorage its keeping keys and others
                 localStorage.setItem("@ecotech-dados", parsedToString)
             }
             //senao, mostrar uma caixinha amigavel de erro
@@ -75,10 +82,10 @@ export function AuthContextProvider ({children} : props) {
     useEffect(() => {   
         const isFullfilledLocalstorage =  localStorage.getItem("@ecotech-dados")
         if(isFullfilledLocalstorage) {
-            const storageParsed = JSON.parse(isFullfilledLocalstorage)
+            const storageParsed : ISetLocalstorage= JSON.parse(isFullfilledLocalstorage)
 
             console.log(storageParsed)
-            setUserData(storageParsed)
+            setUserData(storageParsed.usuario)
         }
     }, [])
 

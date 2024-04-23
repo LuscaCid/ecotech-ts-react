@@ -9,9 +9,13 @@ import { useContext } from "react";
 export const Router = () => {
   //const UserData = useContextSelector(AuthContext, (context) => context.userData)
   //abaixo a verificacao do usuario autenticado pelo cargo dele na aplicacao
-  const {userData} = useContext(AuthContext)
 
-  //if(!userMocked.isActive && userMocked.cargo == 0) {
+
+  const {userData} = useContext(AuthContext)
+  //console.log(userData.usuario)
+
+  console.log(userData)
+
   if(!userData) {
     return (
       <BrowserRouter>

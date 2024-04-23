@@ -34,8 +34,8 @@ export function EmployeeHeader () {
                         </NavLink></li>
                     <li>
                         <NavLink className='p-3 rounded-md border-green-700 border hover:bg-green-600 transition duration-200' 
-                        to="">
-                            Estoque
+                        to="/product">
+                            Produtos
                         </NavLink></li>
                 </ul>
             </menu>
