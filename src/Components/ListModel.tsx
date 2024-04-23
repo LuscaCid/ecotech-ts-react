@@ -1,42 +1,8 @@
-import { ReactNode, SetStateAction, createContext, useContext, useRef, useState } from "react"
 import { ClientRequest } from "../pages/Client/Home"
-import { formatDistanceToNow } from 'date-fns'
-import { ptBR } from 'date-fns/locale/pt-BR'
-
-
-
-
-interface IsOpenProps {
-  isOpen : boolean
-  changeIsOpen : (bool : boolean) => void
-  modalData : RequestPropsForModal | undefined
-  setModalData : React.Dispatch<SetStateAction<RequestPropsForModal | undefined>>
-}
-const IsOpenContext = createContext({} as IsOpenProps)
-
-function IsOpenContextProvider ({children} : {children : ReactNode}) {
-  
-  const [modalData, setModalData] = useState<RequestPropsForModal|undefined>(undefined)
-
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-
-  const changeIsOpen = (bool : boolean) => {
-    setIsOpen(!bool)
-  }
-
-  return (
-    <IsOpenContext.Provider value={
-      { 
-        isOpen,
-        changeIsOpen,
-        modalData,
-        setModalData
-      }
-    } >
-      {children}
-    </IsOpenContext.Provider>
-  )
-}
+import CloseButton from "../assets/close.svg"
+import { SetStateAction, useState } from "react"
+import BaseURL from "../Queries/BaseURL"
+import { X } from "lucide-react"
 
 
 /**
@@ -44,6 +10,14 @@ function IsOpenContextProvider ({children} : {children : ReactNode}) {
  * logo, a ideia eh criar um array a partir das chaves do objeto com Object.keys
  * e dessa forma criar o td a percorrendo a partir deste Object.keys => Array<>
  */
+
+interface RequestPropsForModal {
+  id_solicitacao : number 
+  nm_codigo : string
+  nm_usuario : string
+  isOpen : boolean
+  setIsOpen : React.Dispatch<SetStateAction<boolean>>
+} 
 
 type Props = {
   type : "pessoas" | "produtos" | "Recebimentos" | "usuarioLogadoSolicitacoes"
@@ -53,26 +27,40 @@ type Props = {
 
 export const ListModel = ({type, theadList, tbodyList}: Props) => {
 
-  const {isOpen, changeIsOpen} = useContext(IsOpenContext)
-
+  const [isOpen, setIsOpen] = useState<boolean>(false)
+  const [modalData, setModalData] = useState<RequestPropsForModal>({} as RequestPropsForModal)
   function handleOpenReceived (element : any) {
     console.log(element)
-    if(type == "Recebimentos") 
-    {
-      changeIsOpen(!isOpen)
-    } else return
+    setIsOpen(!isOpen)
+    setModalData({
+      id_solicitacao : element.id_solicitacao,
+      nm_codigo : element.nm_codigo,
+      nm_usuario : element.nm_usuario,
+      isOpen,
+      setIsOpen
+    })
   }
-  
-  function handleAcceptClientRequest() {
 
-  }
 
   return (
 
-    <IsOpenContextProvider>
-      <section className='w-[800px] m-auto border border-zinc-700 p-3 rounded-md mb-2 max-h-[420px] overflow-y-auto '>
-      
-      <ModalAcceptation /> 
+    <section className='w-[1000px] relative transition-all duration-200 m-auto border border-zinc-700 p-3 rounded-md mb-2 max-h-[450px] overflow-y-auto '>
+        <button
+          onClick={() => setIsOpen(!isOpen)} 
+          className={`${isOpen ? "" : "hidden"} text-xl   rounded-md absolute z-30 top-3 text-red-500 font-bold`}>
+          <X size={23}/>
+        </button>
+        {
+          isOpen && <ModalAcceptation 
+          id_solicitacao={modalData.id_solicitacao} 
+          nm_codigo={modalData.nm_codigo} 
+          nm_usuario={modalData.nm_usuario}
+          setIsOpen={setIsOpen}
+          isOpen = {isOpen}
+          /> 
+
+        }
+
       
       <div className="mb-3">
         {type == "Recebimentos" &&  <h1 className='text-2xl text-zinc-200 font-bold rounded-md border border-zinc-700 p-2 '> Lista de Recebimentos</h1> }
@@ -117,34 +105,64 @@ export const ListModel = ({type, theadList, tbodyList}: Props) => {
         
       }
       </section>
-    </IsOpenContextProvider>
-    
   )
 }
 
-interface RequestPropsForModal {
-  id_solicitacao : number 
-  nm_codigo : string
-  nm_usuario : string
-} 
 
-function ModalAcceptation() {
-  const {isOpen, modalData} = useContext(IsOpenContext)
+
+function ModalAcceptation({id_solicitacao,nm_codigo,nm_usuario, isOpen, setIsOpen} : RequestPropsForModal) {
+  async function handleAcceptRequest() {
+    
+    const form = new FormData()
+
+    form.append("id_solicitacao", String(id_solicitacao))
+
+    const response = await fetch(`${BaseURL.baseURL}/solicitacoes/aceitar`, {
+      method : "POST",
+      body : form,
+      headers : {
+        Authorization : `Bearer ${BaseURL.getUserKey()}`
+      }
+    }).then(data => data.json())
+    console.log(response)
+
+    setIsOpen(!isOpen)
+  }
+  async function handleDeclineRequest() {
+    
+    const form = new FormData()
+
+    form.append("id_solicitacao", String(id_solicitacao))
+
+    const response = await fetch(`${BaseURL.baseURL}/solicitacoes/negar`, {
+      method : "POST",
+      body : form,
+      headers : {
+        Authorization : `Bearer ${BaseURL.getUserKey()}`
+      }
+    }).then(data => data.json())
+    console.log(response)
+    setIsOpen(!isOpen)
+  }
   return (
-    <article className={`${isOpen ? "" : "hidden"} bg-zinc-800 rounded-md border border-zinc-700 p-4 text-zinc-200 flex justify-between items-center text-2xl font-bold mb-3`} >
+    <article className={`relative bg-zinc-800 rounded-md border border-zinc-700 p-4 text-zinc-200 flex justify-between items-center text-2xl font-bold mb-3`} >
         <span>
-          Para o usuário: {modalData && modalData.nm_usuario}
+          Para o usuário: {nm_usuario && nm_usuario}
         </span>
         <h1>
 
-          Solicitação selecionada: {modalData && modalData.nm_codigo}
+          Solicitação selecionada: {nm_codigo && nm_codigo}
         </h1>
         <div className="flex gap-3">
-          <button  className="rounded-md bg-red-500 border border-red-600 p-4 text-zinc-200 font-bold hover:bg-red-700 transition duration-150 ">
+          <button
+            onClick={handleDeclineRequest} 
+            className="rounded-md bg-red-500 border border-red-600 p-4 text-zinc-200 font-bold hover:bg-red-700 transition duration-150 ">
             Negar
           </button>
-          <button className="rounded-md bg-green-500 border border-green-600 p-4 text-zinc-200 font-bold hover:bg-green-700 transition duration-150">
-            Negar
+          <button 
+            onClick={handleAcceptRequest}
+            className="rounded-md bg-green-500 border border-green-600 p-4 text-zinc-200 font-bold hover:bg-green-700 transition duration-150">
+            Aceitar
           </button>
         </div>
 
